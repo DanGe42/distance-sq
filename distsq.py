@@ -38,7 +38,8 @@ def dashboard():
     client = getFoursquare()
     try:
         client.set_access_token(session['access_token'])
-        return render_template('dashboard.html', user=client.users()['user'])
+        return render_template('dashboard.html', user=client.users()['user'],
+                               checkins=client.users.checkins()['checkins'])
     except AttributeError:
         abort(401)
 
