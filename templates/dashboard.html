@@ -1,10 +1,14 @@
 <title>Dashboard test</title>
 <h1>Welcome {{ user['firstName'] + " " + user['lastName'] }}</h1>
 
-<ol>
+<p><a href="{{ url_for('logout') }}">Logout</a>
+
+<ol class="checkin-list">
 {% for item in checkins['items'] %}
-    <li>Name: {{ item['venue']['name'] }}, Location: {{ item['venue']['location']['lat'] }},
-        {{ item['venue']['location']['lng'] }};
+    {% with venue = item['venue'] %}
+    <li>Name: {{ venue['name'] }}, Location: {{ venue['location']['lat'] }},
+        {{ venue['location']['lng'] }};
         <a href="http://foursquare.com/user/{{ user['id'] }}/checkin/{{ item['id'] }}">Link</a></li>
+    {% endwith %}
 {% endfor %}
 </ol>

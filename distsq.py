@@ -1,7 +1,7 @@
 from foursquare import Foursquare, FoursquareException
 from pymaps import Icon, Map, PyMap
 from flask import Flask, render_template, url_for, redirect, request, abort, \
-                  session
+                  session, flash
 app = Flask(__name__)
 
 # configuration
@@ -16,14 +16,14 @@ app.config.from_object(__name__)
 def index():
     return render_template('index.html')
 
-@app.route('/auth')
-def auth():
+@app.route('/login')
+def login():
     client = getFoursquare()
     auth_uri = client.oauth.auth_url()
     return redirect(auth_uri)
 
-@app.route('/login')
-def login():
+@app.route('/auth')
+def auth():
     code = request.args.get("code", None)
     if code is not None:
         client = getFoursquare()
@@ -31,7 +31,8 @@ def login():
         session['access_token'] = access_token
         return redirect(url_for('dashboard'))
     else:
-        abort(401)
+        flash('Connect to your Foursquare account to log in')
+        return redirect(url_for('index'))
 
 
 @app.route('/dashboard/')
@@ -41,12 +42,14 @@ def dashboard():
         client.set_access_token(session['access_token'])
         return render_template('dashboard.html', user=client.users()['user'],
                                checkins=client.users.checkins()['checkins'])
-    except AttributeError:
+    except KeyError:
         abort(401)
 
 @app.route('/logout')
 def logout():
-    session.pop('client', None)
+    if session['access_token']:
+        session.pop('access_token', None)
+        flash('You have been logged out successfully')
     return redirect(url_for('index'))
 
 @app.route('/test/')
@@ -58,8 +61,19 @@ def getFoursquare():
     client = Foursquare(client_id=CLIENT_ID,
                         client_secret=CLIENT_SECRET,
                         redirect_uri="http://127.0.0.1:5000" +
-                        url_for('login'))
+                        url_for('auth'))
     return client
+
+def _list_locations(checkins):
+    # result = []
+    # for item in checkins['items']:
+    #     venue = item['venue']
+    #     result.append( (venue['name'], venue['location']['lat'],
+    #                     venue['location']['lng']) )
+    result = [(item['venue']['name'], item['venue']['location']['lat'],
+               item['venue']['location']['lng'], item['id'])
+              for item in checkins['item']]
+    return result
 
 def showmap():
     # Create a map
