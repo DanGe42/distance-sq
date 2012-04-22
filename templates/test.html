@@ -1,7 +1,7 @@
 <html>
   <head>
     {% if map %}
-      {{ map }}
+      {{ map|safe }}
     {% endif %}
   </head>
   <body onload="load()" onunload="GUnload()">

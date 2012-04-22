@@ -54,8 +54,8 @@ def logout():
 
 @app.route('/test/')
 def test():
-    #return render_template('test.html', map = showmap())
-    return showmap()
+    return render_template('test.html', map = showmap())
+    #return showmap()
 
 def getFoursquare():
     client = Foursquare(client_id=CLIENT_ID,
@@ -112,8 +112,8 @@ def showmap():
     
     mapcode = gmap.pymapjs()
 
-    #return mapcode
-    return gmap.showhtml()
+    return mapcode
+    #return gmap.showhtml()
 
 def getcords(deg, mins, sec, ind):
     
