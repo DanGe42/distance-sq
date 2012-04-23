@@ -64,6 +64,10 @@ def test():
     return render_template('test.html', map = showmap())
     #return showmap()
 
+@app.route('/test2/')
+def test2():
+    return render_template('test2.html', key = API_KEY) 
+
 def getFoursquare():
     client = Foursquare(client_id=CLIENT_ID,
                         client_secret=CLIENT_SECRET,
