@@ -40,10 +40,17 @@ def dashboard():
     client = getFoursquare()
     try:
         client.set_access_token(session['access_token'])
-        return render_template('dashboard.html', user=client.users()['user'],
-                               checkins=client.users.checkins()['checkins'])
     except KeyError:
         abort(401)
+
+    checkins = client.users.checkins(params={'afterTimestamp': 1011111111})
+
+    return render_template('dashboard.html', user=client.users()['user'],
+                           checkins=_list_locations(checkins['checkins']))
+
+@app.route('/settings/')
+def settings():
+    return render_template('settings.html')
 
 @app.route('/logout')
 def logout():
@@ -69,10 +76,14 @@ def _list_locations(checkins):
     # for item in checkins['items']:
     #     venue = item['venue']
     #     result.append( (venue['name'], venue['location']['lat'],
-    #                     venue['location']['lng']) )
-    result = [(item['venue']['name'], item['venue']['location']['lat'],
-               item['venue']['location']['lng'], item['id'])
-              for item in checkins['item']]
+    #                     venue['location']['lng'], item['id']) )
+    #result = [(item['venue']['name'], item['venue']['location']['lat'],
+    #           item['venue']['location']['lng'], item['id'])
+    #          for item in checkins['item']]
+    result = [{'name': item['venue']['name'],
+               'lat': item['venue']['location']['lat'],
+               'long': item['venue']['location']['lng'],
+               'id': item['id']} for item in checkins['items']]
     return result
 
 def showmap():
