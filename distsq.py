@@ -49,14 +49,18 @@ def dashboard():
     error = ""
 
     params = {}
-    if not start:
-        start_time = _get_day_before(int(round(time.time())))
-    else:
-        start_time = int(start)
-    params['afterTimestamp'] = start_time
+    try:
+        if not start:
+            start_time = _get_day_before(int(round(time.time())))
+        else:
+            start_time = int(start)
+        params['afterTimestamp'] = start_time
 
-    if end:
-        params['beforeTimestamp'] = int(end)
+        if end:
+            params['beforeTimestamp'] = int(end)
+    except ValueError:
+        flash('Invalid input. Defaulting to defaults.')
+        params = {}
 
     checkins = client.users.checkins(params=params)
 
