@@ -144,12 +144,18 @@ def getcords(deg, mins, sec, ind):
 
     return float(deg)
 
-def center(lat, long):
+def center(dict_list):
     """ Is meant to find the center of multiple points on a graph"""
+    lat = 0
+    long = 0
+    for dict in dict_list:
+        lat += dict[lat]
+        long += dict[long]
+    lat = lat/len(dict_list)
+    long = long/len(dict_list)
     return (lat, long)
 
 #Need to create a global map to be created in the inception of the dashbaord
 #thus we need to have methods to change the center, add points, and reset graph if necessary.
-
 if __name__ == '__main__':
     app.run()
