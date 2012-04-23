@@ -2,6 +2,7 @@ from foursquare import Foursquare, FoursquareException
 from pymaps import Icon, Map, PyMap
 from flask import Flask, render_template, url_for, redirect, request, abort, \
                   session, flash
+import time
 app = Flask(__name__)
 
 # configuration
@@ -43,10 +44,25 @@ def dashboard():
     except KeyError:
         abort(401)
 
-    checkins = client.users.checkins(params={'afterTimestamp': 1011111111})
+    start= request.args.get("start", None)
+    end = request.args.get("end", None)
+    error = ""
+
+    params = {}
+    if not start:
+        start_time = _get_day_before(int(round(time.time())))
+    else:
+        start_time = int(start)
+    params['afterTimestamp'] = start_time
+
+    if end:
+        params['beforeTimestamp'] = int(end)
+
+    checkins = client.users.checkins(params=params)
 
     return render_template('dashboard.html', user=client.users()['user'],
-                           checkins=_list_locations(checkins['checkins']))
+                           checkins=_list_locations(checkins['checkins']),
+                           error=error)
 
 @app.route('/settings/')
 def settings():
@@ -85,6 +101,9 @@ def _list_locations(checkins):
                'long': item['venue']['location']['lng'],
                'id': item['id']} for item in checkins['items']]
     return result
+
+def _get_day_before(timestamp):
+    return timestamp - (24 * 60 * 60)
 
 def showmap():
     # Create a map
