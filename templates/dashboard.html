@@ -1,12 +1,20 @@
-<title>Dashboard test</title>
-<h1>Welcome {{ user['firstName'] + " " + user['lastName'] }}</h1>
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block header %}Welcome {{ user['firstName'] + " " + user['lastName'] }}{% endblock %}
 
-<p><a href="{{ url_for('logout') }}">Logout</a></p>
-<p><a href="{{ url_for('settings') }}">Settings</a></p>
-
-<ol class="checkin-list">
+{% block content %}
+<table>
+    <th>
+        <td>Name</td>
+        <td>Location</td>
+        <td>Link</td>
+    </th>
 {% for checkin in checkins %}
-<li>Name: {{ checkin['name'] }}, Location: {{ checkin['lat'] }}, {{ checkin['long'] }};
-        <a href="http://foursquare.com/user/{{ user['id'] }}/checkin/{{ checkin['id'] }}">Link</a> [{{ checkin['id'] }}]</li>
+   <tr>
+        <td>{{ checkin['name'] }}</td>
+        <td>{{ checkin['lat'] }}, {{ checkin['long'] }}</td>
+        <td><a href="http://foursquare.com/user/{{ user['id'] }}/checkin/{{ checkin['id'] }}">[{{ checkin['id'] }}]</a></td>
+    </tr>
 {% endfor %}
-</ol>
+</table>
+{% endblock %}

@@ -1,7 +1,9 @@
-<title>Settings</title>
+{% block title %}Settings{% endblock %}
 
-<form method=get action="{{ url_for('dashboard') }}">
-    <p>Start: <input type="text" name="start" /></p>
-    <p>End: <input type="text" name="end" /></p>
-    <p><input type="submit" value="Submit" /></p>
+{% block container %}
+<form method="GET" action="{{ url_for('dashboard') }}">
+    Start: <input type="text" name="start" />
+    End: <input type="text" name="end" />
+    <input type="submit" value="Submit" />
 </form>
+{% endblock %}
