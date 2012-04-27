@@ -4,8 +4,19 @@
         <title>Distance Square - {% block title %}{% endblock %}</title>
     </head>
     <body>
-     <div id="container">{% block container %}
-    <h1>{% block header %}{% endblock %}</h1>
-	{% endblock %}</div>
+      <div id="messages">
+       {% with messages = get_flashed_messages() %}
+        {% if messages %}
+          <ul class="flashes">
+          {% for message in messages %}
+            <li>{{ message }}</li>
+          {% endfor %}
+          </ul>
+        {% endif %}
+       {% endwith %}
+      </div>
+
+      <h1>{% block header %}{% endblock %}</h1>
+      {% block content %}{% endblock %}
     </body>
 </html>
