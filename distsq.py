@@ -3,6 +3,7 @@ from pymaps import Icon, Map, PyMap
 from flask import Flask, render_template, url_for, redirect, request, abort, \
                   session, flash
 import time
+import math
 app = Flask(__name__)
 
 # configuration
@@ -111,19 +112,21 @@ def test2():
         params = {}
 
     checkins = client.users.checkins(params=params)
+    checkins = _list_locations(checkins['checkins'])
     locations = []
     location_names = []
-    for checkin in _list_locations(checkins['checkins']):
+    for checkin in checkins:
         if not checkin['name'] in location_names:
           location_names.append(checkin['name'])
           checkin['name'] = checkin['name'].replace(' ', '')
           checkin['name'] = checkin['name'].replace('&', 'and')
           locations.append(checkin)
-    center = {'lat' : 39.9526896018, 'long' : -75.1935732365} 
+    center = _find_center(locations)
+    bounds = _bounds(locations)
 
     return render_template('test3.html', user=client.users()['user'],
-                           checkins=_list_locations(checkins['checkins']),
-                           error=error, locations= locations,
+                           checkins=checkins,
+                           error=error, locations= locations, bounds = bounds,
                            center=center, key=API_KEY)
 
 def getFoursquare():
@@ -151,74 +154,34 @@ def _list_locations(checkins):
 def _get_day_before(timestamp):
     return timestamp - (24 * 60 * 60)
 
-def showmap():
-    # Create a map
-    tmap = Map()
-    tmap.zoom = 17
+def _bounds(dict_list):
+    """ Is meant to find the appropriate zoom value based on points on graph asssuming 72 DPI printout"""
+    max_lat = -90
+    min_lat = 90
+    max_long = -180
+    min_long = 180
+    for dict in dict_list:
+        if dict['lat'] > max_lat:
+            max_lat = dict['lat']
+        elif dict['lat'] < min_lat:
+            min_lat = dict['lat']
+        if dict['long'] > max_long:
+            max_long = dict['long']
+        elif dict['long'] < max_long:
+            min_long = dict['long']
+    return {'min_lat' : min_lat, 'min_long' : min_long, 'max_lat' : max_lat, 'max_long' : max_long}
 
-    #Test lat and lognitue coordinates
-    lat = 0.0
-    long = 0.0
-    
-    #These coordinates are for Hong Kong
-    dlat = "22 15 0 N"
-    dlong = "114 10 60 E"
-
-    dlat = dlat.rsplit(" ")
-    dlong = dlong.rsplit(" ")
-
-    #Convert the coordinates
-    #lat = getcords(float(dlat[0]), float(dlat[1]), float(dlat[2]), dlat[3])
-    #long = getcords(float(dlong[0]), float(dlong[1]), float(dlong[2]), dlong[3])
-    lat = 39.9524
-    long = -75.190521
-
-    pointhtml = "hello there!"
-    
-    #Creates new icon
-    icon1 = Icon('icon1')
-
-    point = (lat, long, pointhtml, icon1.id)
-
-    tmap.setpoint(point)
-    tmap.center = (lat, long)
-
-    gmap = PyMap(key=API_KEY, maplist=[tmap])
-    gmap.addicon(icon1)
-    
-    mapcode = gmap.pymapjs()
-
-    return mapcode
-    #return gmap.showhtml()
-
-def getcords(deg, mins, sec, ind):
-    
-    #Calculate total number of seconds
-    secs = float((mins * 60) + sec)
-
-    #Fractional number of seconds divided by 3600
-    frac = float(sec / 3600)
-
-    #Add fractional degrees to whole degrees
-    degrees = float(deg + frac)
-
-    if ind == 'W':
-        deg = deg * -1
-    elif ind == 'S':
-        deg = deg * -1
-
-    return float(deg)
-
-def center(dict_list):
+def _find_center(dict_list):
     """ Is meant to find the center of multiple points on a graph"""
     lat = 0
     long = 0
+    print dict_list
     for dict in dict_list:
-        lat += dict[lat]
-        long += dict[long]
+        lat += dict['lat']
+        long += dict['long']
     lat = lat/len(dict_list)
     long = long/len(dict_list)
-    return (lat, long)
+    return {'lat' : lat, 'long' : long}
 
 #Need to create a global map to be created in the inception of the dashbaord
 #thus we need to have methods to change the center, add points, and reset graph if necessary.
