@@ -2,8 +2,9 @@
 <html>
     <head>
         <title>Distance Square - {% block title %}{% endblock %}</title>
+        {% block map %}{% endblock %}
     </head>
-    <body>
+    <body onload="initialize()">
       <div id="messages">
        {% with messages = get_flashed_messages() %}
         {% if messages %}

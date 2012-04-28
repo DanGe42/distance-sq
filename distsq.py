@@ -86,7 +86,45 @@ def test():
 
 @app.route('/test2/')
 def test2():
-    return render_template('test2.html', key = API_KEY) 
+    client = getFoursquare()
+    try:
+        client.set_access_token(session['access_token'])
+    except KeyError:
+        abort(401)
+
+    start= request.args.get("start", None)
+    end = request.args.get("end", None)
+    error = ""
+
+    params = {}
+    try:
+        if not start:
+            start_time = _get_day_before(int(round(time.time())))
+        else:
+            start_time = int(start)
+        params['afterTimestamp'] = start_time
+
+        if end:
+            params['beforeTimestamp'] = int(end)
+    except ValueError:
+        flash('Invalid input. Defaulting to defaults.')
+        params = {}
+
+    checkins = client.users.checkins(params=params)
+    locations = []
+    location_names = []
+    for checkin in _list_locations(checkins['checkins']):
+        if not checkin['name'] in location_names:
+          location_names.append(checkin['name'])
+          checkin['name'] = checkin['name'].replace(' ', '')
+          checkin['name'] = checkin['name'].replace('&', 'and')
+          locations.append(checkin)
+    center = {'lat' : 39.9526896018, 'long' : -75.1935732365} 
+
+    return render_template('test3.html', user=client.users()['user'],
+                           checkins=_list_locations(checkins['checkins']),
+                           error=error, locations= locations,
+                           center=center, key=API_KEY)
 
 def getFoursquare():
     client = Foursquare(client_id=CLIENT_ID,

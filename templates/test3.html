@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block map %}
+ <meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
+    <style type="text/css">
+      html { height: 100% }
+      body { height: 100%; margin: 0; padding: 0 }
+      #map_canvas { height: 100% }
+    </style>
+    <script type="text/javascript"
+      src="http://maps.googleapis.com/maps/api/js?key={{ key }}&sensor=true">
+    </script>
+    <script type="text/javascript">
+      function initialize() {
+        var myOptions = {
+          {% if center %}  
+          center: new google.maps.LatLng({{ center['lat'] }}, {{ center['long'] }}),
+	  {% endif %}
+          zoom: 15,
+          mapTypeId: google.maps.MapTypeId.ROADMAP
+        };
+        var map = new google.maps.Map(document.getElementById("map_canvas"),
+            myOptions);
+        var VPL = new google.maps.Marker({
+            position: new google.maps.LatLng(39.9526896018, -75.1935732365),
+            map: map,
+            title:"VanPeltLibrary"
+            });
+        {% for location in locations %}
+	var {{ location['name'] | safe}} = new google.maps.Marker({
+	    position: new google.maps.LatLng({{ location['lat'] }},{{ location['long'] }}),
+	    map: map,
+	    title:"{{ location['name'] | safe}}"
+	    });
+	{% endfor %}
+      }
+    </script>
+{% endblock %}
+{% block header %}Welcome {{ user['firstName'] + " " + user['lastName'] }}{% endblock %}
+{% block content %}
+<p><a href="{{ url_for('settings') }}">Settings</a></p>
+<p><a href="{{ url_for('logout') }}">Log out</a></p>
+<div id="map_canvas" style="width: 1000px; height: 500px"></div>
+{% for checkin in checkins %}
+<p>Location: <a href="http://foursquare.com/user/{{ user['id'] }}/checkin/{{ checkin['id'] }}">{{ checkin['name'] }}</a>,  Lat: {{ checkin['lat']}}, Long: {{checkin['long']}}
+ </p>
+{% endfor %}
+{% endblock %}
