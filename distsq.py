@@ -64,10 +64,28 @@ def dashboard():
         params = {}
 
     checkins = client.users.checkins(params=params)
+    checkins = _list_locations(checkins['checkins'])
+    locations = []
+    location_names = []
+    center = {}
+    bounds = {}
+    for checkin in checkins:
+        if not checkin['name'] in location_names:
+          location_names.append(checkin['name'])
+          checkin['name'] = checkin['name'].replace(' ', '')
+          checkin['name'] = checkin['name'].replace('&', 'and')
+          checkin['name'] = checkin['name'].replace('-', '')
+          locations.append(checkin)
+    if locations:
+        center = _find_center(locations)
+        bounds = _bounds(locations)
+    else:
+        center = {'lat' : 39.9524116516, 'long' : -75.1905136108}
 
-    return render_template('dashboard.html', user=client.users()['user'],
-                           checkins=_list_locations(checkins['checkins']),
-                           error=error)
+    return render_template('test3.html', user=client.users()['user'],
+                           checkins=checkins,
+                           error=error, locations= locations, bounds = bounds,
+                           center=center, key=API_KEY, start=start, end=end)
 
 @app.route('/settings/')
 def settings():
