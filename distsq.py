@@ -97,56 +97,6 @@ def logout():
         flash('You have been logged out successfully')
     return redirect(url_for('index'))
 
-@app.route('/test2/')
-def test2():
-    client = getFoursquare()
-    try:
-        client.set_access_token(session['access_token'])
-    except KeyError:
-        abort(401)
-
-    start= request.args.get("start", None)
-    end = request.args.get("end", None)
-    error = ""
-
-    params = {}
-    try:
-        if not start:
-            start_time = _get_day_before(int(round(time.time())))
-        else:
-            start_time = int(start)
-        params['afterTimestamp'] = start_time
-
-        if end:
-            params['beforeTimestamp'] = int(end)
-    except ValueError:
-        flash('Invalid input. Defaulting to defaults.')
-        params = {}
-
-    checkins = client.users.checkins(params=params)
-    checkins = _list_locations(checkins['checkins'])
-    locations = []
-    location_names = []
-    center = {}
-    bounds = {}
-    for checkin in checkins:
-        if not checkin['name'] in location_names:
-          location_names.append(checkin['name'])
-          checkin['name'] = checkin['name'].replace(' ', '')
-          checkin['name'] = checkin['name'].replace('&', 'and')
-          checkin['name'] = checkin['name'].replace('-', '')
-          locations.append(checkin)
-    if locations:
-        center = _find_center(locations)
-        bounds = _bounds(locations)
-    else:
-        center = {'lat' : 39.9524116516, 'long' : -75.1905136108}
-
-    return render_template('test3.html', user=client.users()['user'],
-                           checkins=checkins,
-                           error=error, locations= locations, bounds = bounds,
-                           center=center, key=API_KEY, start=start, end=end)
-
 def getFoursquare():
     client = Foursquare(client_id=CLIENT_ID,
                         client_secret=CLIENT_SECRET,
