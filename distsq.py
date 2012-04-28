@@ -1,5 +1,4 @@
 from foursquare import Foursquare, FoursquareException
-from pymaps import Icon, Map, PyMap
 from flask import Flask, render_template, url_for, redirect, request, abort, \
                   session, flash
 import time
@@ -79,11 +78,6 @@ def logout():
         session.pop('access_token', None)
         flash('You have been logged out successfully')
     return redirect(url_for('index'))
-
-@app.route('/test/')
-def test():
-    return render_template('test.html', map = showmap())
-    #return showmap()
 
 @app.route('/test2/')
 def test2():
