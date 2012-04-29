@@ -19,7 +19,7 @@ def index():
 
 @app.route('/login')
 def login():
-    client = getFoursquare()
+    client = _get_foursquare()
     auth_uri = client.oauth.auth_url()
     return redirect(auth_uri)
 
@@ -27,7 +27,7 @@ def login():
 def auth():
     code = request.args.get("code", None)
     if code is not None:
-        client = getFoursquare()
+        client = _get_foursquare()
         access_token = client.oauth.get_token(code)
         session['access_token'] = access_token
         return redirect(url_for('dashboard'))
@@ -38,39 +38,59 @@ def auth():
 
 @app.route('/dashboard/')
 def dashboard():
-    client = getFoursquare()
+    client = _get_foursquare()
     try:
         client.set_access_token(session['access_token'])
     except KeyError:
-        abort(401)
+        flash('You are not logged in.')
+        return redirect(url_for('index'))
 
-    start= request.args.get("start", None)
+    start = request.args.get("start", None)
     end = request.args.get("end", None)
-    error = ""
 
+    params = _set_params(start, end)
+    if len(params) == 0:
+        flash('Invalid parameters. Defaulting to defaults.')
+
+    checkins = client.users.checkins(params=params)['checkins']
+    checkins, locations, bounds, center = _process_checkins(checkins)
+
+    print "checkins = " + str(checkins)
+    print "locations = " + str(locations)
+
+    return render_template('test3.html', user=client.users()['user'],
+                           checkins=checkins,
+                           locations= locations, bounds = bounds,
+                           center=center, key=API_KEY, start=start, end=end)
+
+def _set_params(start, end):
     params = {}
     try:
         if not start:
-            start_time = _get_day_before(int(round(time.time())))
+            start_time = _get_day_before( int(round(time.time())) )
         else:
             start_time = int(start)
+
         params['afterTimestamp'] = start_time
 
         if end:
             params['beforeTimestamp'] = int(end)
-    except ValueError:
-        flash('Invalid input. Defaulting to defaults.')
-        params = {}
 
-    checkins = client.users.checkins(params=params)
-    checkins = _list_locations(checkins['checkins'])
+        return params
+    except ValueError:
+        return {}
+
+def _process_checkins(checkins):
+    checkins_list = _list_locations(checkins)
+
     locations = []
-    location_names = []
+    location_names = set()
     center = {}
     bounds = {}
-    for checkin in checkins:
+
+    for checkin in checkins_list:
         if not checkin['name'] in location_names:
-          location_names.append(checkin['name'])
+          location_names.add(checkin['name'])
           checkin['name'] = checkin['name'].replace(' ', '')
           checkin['name'] = checkin['name'].replace('&', 'and')
           checkin['name'] = checkin['name'].replace('-', '')
@@ -81,13 +101,13 @@ def dashboard():
     else:
         center = {'lat' : 39.9524116516, 'long' : -75.1905136108}
 
-    return render_template('test3.html', user=client.users()['user'],
-                           checkins=checkins,
-                           error=error, locations= locations, bounds = bounds,
-                           center=center, key=API_KEY, start=start, end=end)
+    return checkins_list, locations, bounds, center
 
 @app.route('/settings/')
 def settings():
+    if 'access_token' not in session:
+        flash('You are not logged in.')
+        return redirect(url_for('index'))
     return render_template('settings.html')
 
 @app.route('/logout')
@@ -97,7 +117,7 @@ def logout():
         flash('You have been logged out successfully')
     return redirect(url_for('index'))
 
-def getFoursquare():
+def _get_foursquare():
     client = Foursquare(client_id=CLIENT_ID,
                         client_secret=CLIENT_SECRET,
                         redirect_uri="http://127.0.0.1:5000" +
@@ -105,14 +125,18 @@ def getFoursquare():
     return client
 
 def _list_locations(checkins):
-    # result = []
-    # for item in checkins['items']:
-    #     venue = item['venue']
-    #     result.append( (venue['name'], venue['location']['lat'],
-    #                     venue['location']['lng'], item['id']) )
-    #result = [(item['venue']['name'], item['venue']['location']['lat'],
-    #           item['venue']['location']['lng'], item['id'])
-    #          for item in checkins['item']]
+    """ Takes the list of checkins from the Foursquare API and reduces it down
+    to a list of dictionaries of a venue name, location, and ID.
+
+    Usage example:
+        locations = _list_locations(checkins)
+        for location in locations:
+            print "name = " + location['name']
+            print "latitude = " + location['lat']
+            print "longitude = " + location['long']
+            print "ID = " + location['id']
+            print ""
+    """
     result = [{'name': item['venue']['name'],
                'lat': item['venue']['location']['lat'],
                'long': item['venue']['location']['lng'],
