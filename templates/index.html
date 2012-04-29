@@ -1,9 +1,10 @@
 {% extends "base.html" %}
 {% block title %}Distance Square{% endblock %}
-{% block header %}Log into Foursquare first{% endblock %}
 {% block content %}
   {{ super() }}
+    <div style="margin-right: auto; margin-left: auto; margin-top: 130px; width: 257px;">
         <a href="{{ url_for('login') }}">
-            <img src="static/images/connect-black.png" />
+            <img src="static/images/logo.png" />
         </a>
+    </div>
 {% endblock %}
