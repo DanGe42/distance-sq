@@ -115,11 +115,11 @@ def _process_checkins(checkins):
     bounds = {}
     # make checkin names safe
     for checkin in checkins_list:
+        checkin['name'] = checkin['name'].replace(' ', '')
+        checkin['name'] = checkin['name'].replace('&', 'and')
+        checkin['name'] = checkin['name'].replace('-', '')
         if not checkin['name'] in location_names:
             location_names.add(checkin['name'])
-            checkin['name'] = checkin['name'].replace(' ', '')
-            checkin['name'] = checkin['name'].replace('&', 'and')
-            checkin['name'] = checkin['name'].replace('-', '')
             locations.append(checkin)
     if locations:
         center = _find_center(locations)
