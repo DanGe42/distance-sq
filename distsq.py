@@ -1,8 +1,8 @@
 from foursquare import Foursquare, FoursquareException, InvalidAuth
-from flask import Flask, render_template, url_for, redirect, request, abort, \
+from flask import Flask, render_template, url_for, redirect, request, \
                   session, flash
 import time
-import math
+
 app = Flask(__name__)
 
 # configuration
@@ -114,11 +114,11 @@ def _process_checkins(checkins):
 
     for checkin in checkins_list:
         if not checkin['name'] in location_names:
-          location_names.add(checkin['name'])
-          checkin['name'] = checkin['name'].replace(' ', '')
-          checkin['name'] = checkin['name'].replace('&', 'and')
-          checkin['name'] = checkin['name'].replace('-', '')
-          locations.append(checkin)
+            location_names.add(checkin['name'])
+            checkin['name'] = checkin['name'].replace(' ', '')
+            checkin['name'] = checkin['name'].replace('&', 'and')
+            checkin['name'] = checkin['name'].replace('-', '')
+            locations.append(checkin)
     if locations:
         center = _find_center(locations)
         bounds = _bounds(locations)
@@ -185,15 +185,15 @@ def _bounds(dict_list):
     max_long = -180
     min_long = 180
 
-    for dict in dict_list:
-        if dict['lat'] > max_lat:
-            max_lat = dict['lat']
-        elif dict['lat'] < min_lat:
-            min_lat = dict['lat']
-        if dict['long'] > max_long:
-            max_long = dict['long']
-        elif dict['long'] < max_long:
-            min_long = dict['long']
+    for dict_ in dict_list:
+        if dict_['lat'] > max_lat:
+            max_lat = dict_['lat']
+        elif dict_['lat'] < min_lat:
+            min_lat = dict_['lat']
+        if dict_['long'] > max_long:
+            max_long = dict_['long']
+        elif dict_['long'] < max_long:
+            min_long = dict_['long']
 
     return {'min_lat' : min_lat,
             'min_long' : min_long,
@@ -203,16 +203,15 @@ def _bounds(dict_list):
 def _find_center(dict_list):
     """ Is meant to find the center of multiple points on a graph"""
     lat = 0
-    long = 0
+    lng = 0
     print dict_list
-    for dict in dict_list:
-        lat += dict['lat']
-        long += dict['long']
+    for dict_ in dict_list:
+        lat += dict_['lat']
+        lng += dict_['long']
     lat = lat/len(dict_list)
-    long = long/len(dict_list)
-    return {'lat' : lat, 'long' : long}
+    lng = lng/len(dict_list)
+    return {'lat' : lat, 'long' : lng}
 
-#Need to create a global map to be created in the inception of the dashbaord
-#thus we need to have methods to change the center, add points, and reset graph if necessary.
+
 if __name__ == '__main__':
     app.run()
