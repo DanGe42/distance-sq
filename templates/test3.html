@@ -58,13 +58,19 @@
         directionsDisplay.setMap(map);
       }
 
-      function calcRoute() {
-        var selectedMode = document.getElementById("mode").value;
+      function calcRoute(startIndex, endIndex) {
+        var start;
+	var end;
+	var selectedMode = document.getElementById("mode").value;
         {% if locations %}
-        var start = new google.maps.LatLng({{ checkins[1]['lat'] }},
-        {{ locations[1]['long'] }});
-        var end = new google.maps.LatLng({{ checkins[0]['lat'] }},
-        {{ locations[0]['long'] }});
+	// get start and endpoints' lat and long from HTML
+	var dom = document.getElementById("dom");
+	startLat = dom.childNodes[startIndex].firstChild.firstChild;
+	startLong = dom.childNodes[startIndex].lastChild.firstChild;
+	endLat = dom.childNodes[endIndex].firstChild.firstChild;
+	endLong = dom.childNodes[endIndex].lastChild.firstChild;
+        start = new google.maps.LatLng(startLat, startLong);
+        end = new google.maps.LatLng(endLat, endLong);
         {% endif %}
         var request = {
         origin:start,
@@ -91,7 +97,7 @@
   <option value="WALKING">Walking</option>
   <option value="BICYCLING">Bicycling</option>
 </select>
-<button onclick="calcRoute()">CALCULATE ME!</button>
+<button onclick="calcRoute(1, 0)">CALCULATE ME!</button>
 </div>
 <div id="map_canvas" style="width: 1000px; height: 500px"></div>
 {% for checkin in checkins %}
