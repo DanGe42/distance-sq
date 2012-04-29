@@ -61,6 +61,7 @@
       function calcRoute() {
         var start;
 	var end;
+	var middle = [];
 	var selectedMode = document.getElementById("mode").value;
         {% if locations %}
 	// get startIndex and endIndex from dropdowns
@@ -74,11 +75,20 @@
 	endLong = dom.childNodes[endIndex].lastChild.nodeValue;
         start = new google.maps.LatLng(startLat, startLong);
         end = new google.maps.LatLng(endLat, endLong);
+	// list intermediate checkins
+	for (var i=startIndex+1; i<endIndex; i++)  {
+          var midLat = dom.childNodes[i].firstChild.nodeValue;
+          var midLong = dom.childNodes[i].lastChild.nodeValue;
+          middle.push(
+	    {location: new google.maps.LatLng(midLat, midLong), stopover: true}
+          );
+        }
         {% endif %}
         var request = {
-        origin:start,
-        destination:end,
-        travelMode: google.maps.TravelMode[selectedMode]
+            origin: start,
+            destination: end,
+            waypoints: middle,
+            travelMode: google.maps.TravelMode[selectedMode]
         };
         directionsService.route(request, function(result, status) {
           if (status == google.maps.DirectionsStatus.OK) {
