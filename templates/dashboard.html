@@ -1,23 +1,123 @@
 {% extends "base.html" %}
 {% block title %}Dashboard{% endblock %}
-{% block header %}Welcome {{ user['firstName'] + " " + user['lastName'] }}{% endblock %}
+{% block map %}
+ <meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
+    <style type="text/css">
+      html { height: 100% }
+      body { height: 100%; margin: 0; padding: 0 }
+      #map_canvas { height: 100% }
+    </style>
+    <script type="text/javascript"
+      src="http://maps.googleapis.com/maps/api/js?key={{ key }}&sensor=true">
+    </script>
+    <script type="text/javascript">
+      var directionsDisplay;
+      var directionsService = new google.maps.DirectionsService();
+      var map;
+      var start_index = 1;
+      var end_index = 0;
+      function initialize() {
+        directionsDisplay = new google.maps.DirectionsRenderer();
+        var myOptions = {
+          {% if center %}  
+          center: new google.maps.LatLng({{ center['lat'] }}, {{ center['long'] }}),
+          {% else %}
+          center: new google.maps.LatLng(39.9524116516, -75.1905136108),
+          {% endif %}
+          zoom: 14,
+          mapTypeId: google.maps.MapTypeId.ROADMAP
+        };
+        map = new google.maps.Map(document.getElementById("map_canvas"),
+            myOptions);
+	var dom = document.getElementById("dom");
+	var dom_location;
+	{% for checkin in checkins %}
+	  // store checkins (lat and long) in HTML DOM
+	  dom_location = document.createElement("p");
+	  dom_location.appendChild(document.createTextNode("{{ checkin['lat'] }}"));
+	  dom_location.appendChild(document.createTextNode("{{ checkin['long'] }}"));
+	  dom.appendChild(dom_location);
+	{% endfor %}
+	
+        {% for location in locations %}
+	var {{ location['name'] | safe}} = new google.maps.Marker({
+	    position: new google.maps.LatLng({{ location['lat'] }},{{ location['long'] }}),
+	    map: map,
+	    title:"{{ location['name'] | safe}}"
+	    });
 
+	{% endfor %}
+        {% if bounds %}
+        var bounds = new google.maps.LatLngBounds();
+        bounds.extend(new google.maps.LatLng({{ bounds['min_lat'] }},
+{{ bounds['min_long'] }}))
+        bounds.extend(new google.maps.LatLng({{ bounds['max_lat']}},
+{{ bounds['max_long'] }}))
+        map.fitBounds(bounds);
+        {% endif %}
+        directionsDisplay.setMap(map);
+      }
+
+      function calcRoute() {
+        var start;
+	var end;
+	var selectedMode = document.getElementById("mode").value;
+        {% if locations %}
+	// get startIndex and endIndex from dropdowns
+	startIndex = document.getElementById("start").selectedIndex;
+	endIndex = document.getElementById("end").selectedIndex;
+	// get start and endpoints' lat and long from HTML
+	var dom = document.getElementById("dom");
+	startLat = dom.childNodes[startIndex].firstChild.nodeValue;
+	startLong = dom.childNodes[startIndex].lastChild.nodeValue;
+	endLat = dom.childNodes[endIndex].firstChild.nodeValue;
+	endLong = dom.childNodes[endIndex].lastChild.nodeValue;
+        start = new google.maps.LatLng(startLat, startLong);
+        end = new google.maps.LatLng(endLat, endLong);
+        {% endif %}
+        var request = {
+        origin:start,
+        destination:end,
+        travelMode: google.maps.TravelMode[selectedMode]
+        };
+        directionsService.route(request, function(result, status) {
+          if (status == google.maps.DirectionsStatus.OK) {
+            directionsDisplay.setDirections(result);
+          }
+        });
+      }
+    </script>
+{% endblock %}
+{% block header %}Welcome {{ user['firstName'] + " " + user['lastName'] }}{% endblock %}
 {% block content %}
 <p><a href="{{ url_for('settings') }}">Settings</a></p>
 <p><a href="{{ url_for('logout') }}">Log out</a></p>
-
-<table>
-    <th>
-        <td>Name</td>
-        <td>Location</td>
-        <td>Link</td>
-    </th>
+<p> Start: {{ start }}, End: {{ end }} </p>
+<div>
+<strong>Mode of Travel: </strong>
+<select id="mode">
+  <option value="DRIVING">Driving</option>
+  <option value="WALKING">Walking</option>
+  <option value="BICYCLING">Bicycling</option>
+</select>
+<button onclick="calcRoute()">CALCULATE ME!</button><br />
+<select id="start">
 {% for checkin in checkins %}
-   <tr>
-        <td>{{ checkin['name'] }}</td>
-        <td>{{ checkin['lat'] }}, {{ checkin['long'] }}</td>
-        <td><a href="http://foursquare.com/user/{{ user['id'] }}/checkin/{{ checkin['id'] }}">[{{ checkin['id'] }}]</a></td>
-    </tr>
+  <option value="{{ checkin['id'] }}">{{ checkin['name'] }}</option>
 {% endfor %}
-</table>
+</select>
+<select id="end">
+{% for checkin in checkins %}
+  <option value="{{ checkin['id'] }}">{{ checkin['name'] }}</option>
+{% endfor %}
+</select>
+</div>
+<div id="map_canvas" style="width: 1000px; height: 500px"></div>
+{% for checkin in checkins %}
+<p>Location: <a href="http://foursquare.com/user/{{ user['id'] }}/checkin/{{ checkin['id'] }}">{{ checkin['name'] }}</a>,  
+Lat: {{ checkin['lat'] }}, 
+Long: {{ checkin['long'] }}
+ </p>
+{% endfor %}
+<div id="dom"></div>
 {% endblock %}
