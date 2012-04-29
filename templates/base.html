@@ -9,21 +9,24 @@
         <title>Distance Square - {% block title %}{% endblock %}</title>
         {% block map %}{% endblock %}
 	<style type="text/css">
-	   .messages {  }
+           body { padding: 10px 20px; }
+	   #messages { border: 1px #DAA520 solid; background-color: #FFFFB2; 
+padding: 15px; width: 500px; margin-bottom: 30px; 4}
+	   #messages li { display: inline; }
 	</style>
     </head>
     <body onload="initialize()">
-      <div id="messages">
        {% with messages = get_flashed_messages() %}
         {% if messages %}
+      <div id="messages">
           <ul class="flashes">
           {% for message in messages %}
             <li>{{ message }}</li>
           {% endfor %}
           </ul>
+      </div>
         {% endif %}
        {% endwith %}
-      </div>
 
       {% block header %}{% endblock %}
       {% block content %}{% endblock %}

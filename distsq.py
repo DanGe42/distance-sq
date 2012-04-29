@@ -111,7 +111,7 @@ def _process_checkins(checkins):
     location_names = set()
     center = {}
     bounds = {}
-
+    # make checkin names safe
     for checkin in checkins_list:
         if not checkin['name'] in location_names:
             location_names.add(checkin['name'])
