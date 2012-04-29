@@ -51,3 +51,6 @@ is a templating language that mixes Python with HTML.
 ## Known issues
 * Currently, the settings page is not intuitive to use. It requires the use of
 Unix time in seconds.
+* The foursquare wrapper uses authentication, which means it is impossible to 
+fully log out from our app. Foursquare doesn't allow developers to log users 
+out of Foursquare.
