@@ -55,6 +55,9 @@ def dashboard():
     checkins = client.users.checkins(params=params)['checkins']
     checkins, locations, bounds, center = _process_checkins(checkins)
 
+    print "checkins = " + str(checkins)
+    print "locations = " + str(locations)
+
     return render_template('test3.html', user=client.users()['user'],
                            checkins=checkins,
                            locations= locations, bounds = bounds,
@@ -98,7 +101,7 @@ def _process_checkins(checkins):
     else:
         center = {'lat' : 39.9524116516, 'long' : -75.1905136108}
 
-    return checkins, locations, bounds, center
+    return checkins_list, locations, bounds, center
 
 @app.route('/settings/')
 def settings():
