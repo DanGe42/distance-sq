@@ -14,8 +14,8 @@
       var directionsDisplay;
       var directionsService = new google.maps.DirectionsService();
       var map;
-      var start_index = 1;
-      var end_index = 0;
+      //var start_index = 1;
+      //var end_index = 0;
       function initialize() {
         directionsDisplay = new google.maps.DirectionsRenderer();
         var myOptions = {
@@ -29,16 +29,18 @@
         };
         map = new google.maps.Map(document.getElementById("map_canvas"),
             myOptions);
+
+        // store checkins (lat and long) in HTML DOM	
 	var dom = document.getElementById("dom");
 	var dom_location;
 	{% for checkin in checkins %}
-	  // store checkins (lat and long) in HTML DOM
 	  dom_location = document.createElement("p");
 	  dom_location.appendChild(document.createTextNode("{{ checkin['lat'] }}"));
 	  dom_location.appendChild(document.createTextNode("{{ checkin['long'] }}"));
 	  dom.appendChild(dom_location);
 	{% endfor %}
 	
+	// draw unique locations
         {% for location in locations %}
 	var {{ location['name'] | safe}} = new google.maps.Marker({
 	    position: new google.maps.LatLng({{ location['lat'] }},{{ location['long'] }}),
@@ -67,6 +69,7 @@
 	// get startIndex and endIndex from dropdowns
 	startIndex = document.getElementById("start").selectedIndex;
 	endIndex = document.getElementById("end").selectedIndex;
+
 	// get start and endpoints' lat and long from HTML
 	var dom = document.getElementById("dom");
 	startLat = dom.childNodes[startIndex].firstChild.nodeValue;
@@ -75,12 +78,13 @@
 	endLong = dom.childNodes[endIndex].lastChild.nodeValue;
         start = new google.maps.LatLng(startLat, startLong);
         end = new google.maps.LatLng(endLat, endLong);
+
 	// list intermediate checkins
 	for (var i=startIndex+1; i<endIndex; i++)  {
           var midLat = dom.childNodes[i].firstChild.nodeValue;
           var midLong = dom.childNodes[i].lastChild.nodeValue;
           middle.push(
-	    {location: new google.maps.LatLng(midLat, midLong), stopover: true}
+ 	     {location: new google.maps.LatLng(midLat, midLong), stopover: true}
           );
         }
         {% endif %}
@@ -93,6 +97,9 @@
         directionsService.route(request, function(result, status) {
           if (status == google.maps.DirectionsStatus.OK) {
             directionsDisplay.setDirections(result);
+          }
+          else  {
+            document.getElementById("start").focus();
           }
         });
       }
