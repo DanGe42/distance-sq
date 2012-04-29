@@ -61,6 +61,7 @@
       function calcRoute() {
         var start;
 	var end;
+	var middle = [];
 	var selectedMode = document.getElementById("mode").value;
         {% if locations %}
 	// get startIndex and endIndex from dropdowns
@@ -74,11 +75,20 @@
 	endLong = dom.childNodes[endIndex].lastChild.nodeValue;
         start = new google.maps.LatLng(startLat, startLong);
         end = new google.maps.LatLng(endLat, endLong);
+	// list intermediate checkins
+	for (var i=startIndex+1; i<endIndex; i++)  {
+          var midLat = dom.childNodes[i].firstChild.nodeValue;
+          var midLong = dom.childNodes[i].lastChild.nodeValue;
+          middle.push(
+	    {location: new google.maps.LatLng(midLat, midLong), stopover: true}
+          );
+        }
         {% endif %}
         var request = {
-        origin:start,
-        destination:end,
-        travelMode: google.maps.TravelMode[selectedMode]
+            origin: start,
+            destination: end,
+            waypoints: middle,
+            travelMode: google.maps.TravelMode[selectedMode]
         };
         directionsService.route(request, function(result, status) {
           if (status == google.maps.DirectionsStatus.OK) {
@@ -88,11 +98,28 @@
       }
     </script>
 {% endblock %}
-{% block header %}Welcome {{ user['firstName'] + " " + user['lastName'] }}{% endblock %}
+{% block header %}
+<div>
+  <h1>Welcome {{ user['firstName'] + " " + user['lastName'] }}</h1>
+  <a href="{{ url_for('settings') }}">Settings</a>
+  <a href="{{ url_for('logout') }}">Log out</a>
+</div>
+{% endblock %}
 {% block content %}
-<p><a href="{{ url_for('settings') }}">Settings</a></p>
-<p><a href="{{ url_for('logout') }}">Log out</a></p>
-<p> Start: {{ start }}, End: {{ end }} </p>
+<div>
+<strong>From: </strong>
+<select id="start">
+{% for checkin in checkins %}
+  <option value="{{ checkin['id'] }}">{{ checkin['name'] }}</option>
+{% endfor %}
+</select>
+<strong>To: </strong>
+<select id="end">
+{% for checkin in checkins %}
+   <option value="{{ checkin['id'] }}">{{ checkin['name'] }}</option>
+{% endfor %}
+</select>
+</div>
 <div>
 <strong>Mode of Travel: </strong>
 <select id="mode">
@@ -100,24 +127,23 @@
   <option value="WALKING">Walking</option>
   <option value="BICYCLING">Bicycling</option>
 </select>
-<button onclick="calcRoute()">CALCULATE ME!</button><br />
-<select id="start">
-{% for checkin in checkins %}
-  <option value="{{ checkin['id'] }}">{{ checkin['name'] }}</option>
-{% endfor %}
-</select>
-<select id="end">
-{% for checkin in checkins %}
-  <option value="{{ checkin['id'] }}">{{ checkin['name'] }}</option>
-{% endfor %}
-</select>
+<button class="btn btn-primary" onclick="calcRoute()">CALCULATE ME!</button><br />
 </div>
-<div id="map_canvas" style="width: 1000px; height: 500px"></div>
-{% for checkin in checkins %}
-<p>Location: <a href="http://foursquare.com/user/{{ user['id'] }}/checkin/{{ checkin['id'] }}">{{ checkin['name'] }}</a>,  
-Lat: {{ checkin['lat'] }}, 
-Long: {{ checkin['long'] }}
- </p>
-{% endfor %}
+<div class="row">
+  <div class="span12">
+    <div class="row">
+      <div class="span8">
+        <div id="map_canvas" style="width: 750px; height: 550px"></div>
+      </div>
+      <div class="span4">
+        <h2>Checkins</h2>
+        {% for checkin in checkins %}
+        <p>Location: <a href="http://foursquare.com/user/{{ user['id'] }}/checkin/{{ checkin['id'] }}">{{ checkin['name'] }}</a>,  
+        </p>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
 <div id="dom"></div>
 {% endblock %}
