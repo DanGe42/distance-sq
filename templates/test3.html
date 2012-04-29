@@ -57,16 +57,17 @@
       }
 
       function calcRoute() {
+        var selectedMode = document.getElementById("mode").value;
         {% if locations %}
-        var start = new google.maps.LatLng({{ locations[1]['lat'] }},
+        var start = new google.maps.LatLng({{ checkins[1]['lat'] }},
         {{ locations[1]['long'] }});
-        var end = new google.maps.LatLng({{ locations[0]['lat'] }},
+        var end = new google.maps.LatLng({{ checkins[0]['lat'] }},
         {{ locations[0]['long'] }});
         {% endif %}
         var request = {
         origin:start,
         destination:end,
-        travelMode: google.maps.TravelMode.WALKING
+        travelMode: google.maps.TravelMode[selectedMode]
         };
         directionsService.route(request, function(result, status) {
           if (status == google.maps.DirectionsStatus.OK) {
@@ -81,7 +82,15 @@
 <p><a href="{{ url_for('settings') }}">Settings</a></p>
 <p><a href="{{ url_for('logout') }}">Log out</a></p>
 <p> Start: {{ start }}, End: {{ end }} </p>
-<button onclick="calcRoute()">Calculate Route</button>
+<div>
+<strong>Mode of Travel: </strong>
+<select id="mode">
+  <option value="DRIVING">Driving</option>
+  <option value="WALKING">Walking</option>
+  <option value="BICYCLING">Bicycling</option>
+</select>
+<button onclick="calcRoute()">CALCULATE ME!</button>
+</div>
 <div id="map_canvas" style="width: 1000px; height: 500px"></div>
 {% for checkin in checkins %}
 <p>Location: <a href="http://foursquare.com/user/{{ user['id'] }}/checkin/{{ checkin['id'] }}">{{ checkin['name'] }}</a>,  
