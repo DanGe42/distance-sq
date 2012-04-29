@@ -29,20 +29,22 @@
         };
         map = new google.maps.Map(document.getElementById("map_canvas"),
             myOptions);
-
 	var dom = document.getElementById("dom");
+	var dom_location;
+	{% for checkin in checkins %}
+	  // store checkins (lat and long) in HTML DOM
+	  dom_location = document.createElement("p");
+	  dom_location.appendChild(document.createTextNode("{{ checkin['lat'] }}"));
+	  dom_location.appendChild(document.createTextNode("{{ checkin['long'] }}"));
+	  dom.appendChild(dom_location);
+	{% endfor %}
+	
         {% for location in locations %}
 	var {{ location['name'] | safe}} = new google.maps.Marker({
 	    position: new google.maps.LatLng({{ location['lat'] }},{{ location['long'] }}),
 	    map: map,
 	    title:"{{ location['name'] | safe}}"
 	    });
-	// store each location (just lat and long) in HTML DOM
-	var dom_location = document.createElement("p");
-	dom_location.appendNode(document.createTextNode("{{ location['lat'] }}"));
-	dom_location.appendNode(document.createTextNode("{{ location['long'] }}"));
-	
-	dom.appendNode(dom_location);
 
 	{% endfor %}
         {% if bounds %}
