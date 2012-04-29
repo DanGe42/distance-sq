@@ -57,7 +57,7 @@ def dashboard():
 
     The dashboard takes user-defined values of start and end times (defined in
     /settings/). If the start and end times are not properly defined, we provide
-    default start (from the beginning of time (in UNIX land...)) and end times
+    default start (current time - 24 hours) and end times
     (current time). We then query Foursquare for checkin data and render it onto
     dashboard.html.
     """
@@ -92,8 +92,8 @@ def _set_params(start, end):
     params = {}
     try:
         if not start:
-            #start_time = _get_day_before( int(round(time.time())) )
-            start_time = 0
+            start_time = _get_day_before( int(round(time.time())) )
+            #start_time = 0
         else:
             start_time = int(start)
 
